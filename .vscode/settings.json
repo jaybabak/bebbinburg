@@ -1,0 +1,6 @@
+{
+  "php.executablePath": "",
+  "phpcbf.standard": "Drupal",
+  "phpcs.enable": true,
+  "phpcs.standard": "Drupal,DrupalPractice",
+}
