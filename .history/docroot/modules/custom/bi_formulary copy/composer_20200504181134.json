@@ -1,0 +1,19 @@
+{
+    "name": "bihub/bi_formulary",
+    "type": "drupal-bihub-module",
+    "license": "proprietary",
+    "description": "A module that provides integration with the formulary API",
+    "keywords": [
+        "Drupal",
+        "Formulary API"
+    ],
+    "require": {
+        "drupal/key": "^1.8",
+        "bihub/bi_essentials": "^1.0",
+        "bihub/bi-fingertip-formulary": "^1.0",
+        "drupal/universal_device_detection": "dev-1.x#4a54e7f9"
+    },
+    "extra": {
+      "enable-patching": true
+    }
+}

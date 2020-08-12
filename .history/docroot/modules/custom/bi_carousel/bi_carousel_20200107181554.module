@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @file
+ * Provides BI Carousel integration.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function bi_carousel_theme($existing, $type, $theme, $path) {
+  return [
+    'block__bundle__bi_carousel' => [
+      'template' => 'bi-carousel',
+      'base hook' => 'block',
+    ],
+    'field__block_content__field_bi_section_headline' => [
+      'template' => 'fields/field--block-content--field-bi-section-headline',
+      'base hook' => 'field',
+    ],
+    'field__block_content__field_bi_slides' => [
+      'template' => 'fields/field--block-content--field-bi-slides',
+      'base hook' => 'field',
+    ],
+    'field__block_content__field_bi_carousel_cta_link' => [
+      'template' => 'fields/field--block-content--field-bi-carousel-cta-link',
+      'base hook' => 'field',
+    ],
+  ];
+}
+ 
+/**
+ * Implements hook_preprocess_responsive_image().
+ */
+function bi_carousel_preprocess_responsive_image(&$vars) {
+  // Adds the class to the img tag for responsive image style.
+  if ($vars['responsive_image_style_id'] == 'bi_carousel') {
+    $vars["img_element"]["#attributes"]['class'][] = 'carousel__item__image-container__image';
+  }
+}
+
+/**
+ * Implements hook_preprocess_form_alter().
+ */
+function bi_carousel_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  switch ($form_id) {
+    case 'layout_builder_add_block':
+    case 'layout_builder_update_block':
+      // Custom validation function.
+      $form['#validate'][] = '_validate_layout_builder_form';
+      break;
+
+    case 'block_content_bi_carousel_edit_form':
+    case 'block_content_bi_carousel_form':
+      // Custom validation function for node add/edit form.
+      $form['#validate'][] = '_validate_node_add_edit_form';
+      break;
+  }
+}
+
+/**
+ * Validates the field_bi_slides to ensure minimum of 2 slides are selected.
+ */
+function _validate_node_add_edit_form(&$form, FormStateInterface $form_state) {
+  // Checks if field_bi_slides exists on form.
+  if ($form_state->hasValue('field_bi_slides')) {
+    // Gets all the slides.
+    $slides = $form_state->getValue('field_bi_slides');
+    // Sets the form key to trigger the error on that element.
+    $form_element = 'field_bi_slides';
+    return _validate_slides($form_state, $slides, $form_element);
+  }
+}
+
+/**
+ * Validates the field_bi_slides for layout builder add/update forms (2 slides).
+ */
+function _validate_layout_builder_form(&$form, FormStateInterface $form_state) {
+  // Validation for layout builder add/update forms.
+  $layout_add_edit_form = $form_state->cleanValues()->getValues();
+  $slides = $layout_add_edit_form['settings']['block_form']['field_bi_slides'];
+  // Checks if field_bi_slides exists.
+  if (isset($slides)) {
+    // Sets the form key to trigger the error on that element.
+    $form_element = 'settings][block_form][field_bi_slides';
+    return _validate_slides($form_state, $slides, $form_element);
+  }
+}
+
+/**
+ * Validation function returns an error if minimum 2 slides aren't present.
+ */
+function _validate_slides($form_state, $slides, $key) {
+  if (isset($slides['entities'])) {
+    // If $slides exists proceed to check if there are less than 2 slides.
+    if (count($slides["entities"]) < 2 || count($slides["entities"]) > 5) {
+      return $form_state->setErrorByName($key, t('Must have a minimum of 2 and a maximum of 5 slides.'));
+    }
+    // Returns TRUE if validation passes.
+    return TRUE;
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "name": "acme_sports/acme_sports_nfl_teams",
+    "type": "drupal-acme-sports-module",
+    "license": "proprietary",
+    "description": "A module that provides integration with the NFL API",
+    "keywords": [
+        "Drupal",
+        "Formulary API"
+    ],
+    "require": {
+        "drupal/key": "^1.8",
+        "bihub/bi_essentials": "^1.0",
+        "bihub/bi-fingertip-formulary": "^1.0",
+        "drupal/universal_device_detection": "dev-1.x#4a54e7f9"
+    },
+    "extra": {
+      "enable-patching": true
+    }
+}

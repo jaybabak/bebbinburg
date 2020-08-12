@@ -1,0 +1,10 @@
+services:
+  acme_sports_nfl_teams.api:
+    class: Drupal\acme_sports_nfl_teams\BiFormularyApiService
+    arguments: ['@config.factory', '@key.repository', '@http_client']
+  logger.channel.acme_sports_nfl_teams:
+    parent: logger.channel_base
+    arguments: ['acme_sports_nfl_teams']
+  acme_sports_nfl_teams.geocoding:
+    class: Drupal\acme_sports_nfl_teams\BiFormularyGeocodingService
+    arguments: ['@config.factory', '@key.repository', '@http_client']

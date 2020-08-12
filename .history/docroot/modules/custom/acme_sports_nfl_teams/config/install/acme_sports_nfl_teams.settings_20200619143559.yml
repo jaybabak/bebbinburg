@@ -1,0 +1,7 @@
+acme_sports_nfl_teams:
+  key: formulary_api_key
+  state_coverage: 1
+dependencies:
+  enforced:
+    module:
+      - acme_sports_nfl_teams

@@ -1,0 +1,5 @@
+name: Acme Sports NFL Teams
+type: module
+description: A module that provides integration with NFL API
+core: 8.x
+package: Acme Sports

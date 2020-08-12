@@ -1,0 +1,21 @@
+{
+    "name": "acme_sports/acme_sports_nfl_teams",
+    "authors": [
+      {
+          "name": "Nils Adermann",
+          "email": "naderman@naderman.de",
+          "homepage": "http://www.naderman.de",
+          "role": "Developer"
+      }
+    ],
+    "type": "drupal-acme-sports-module",
+    "license": "proprietary",
+    "description": "A module that provides integration with the NFL API",
+    "keywords": [
+        "Drupal",
+        "NFL API"
+    ],
+    "extra": {
+      "enable-patching": true
+    }
+}

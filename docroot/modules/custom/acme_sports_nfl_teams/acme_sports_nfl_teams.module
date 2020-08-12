@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Contains acme_sports_nfl_teams.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function acme_sports_nfl_teams_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the acme_sports_nfl_teams module.
+    case 'help.page.acme_sports_nfl_teams':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('A module that provides integration with NFL Api. View the configuration menu for this module by clicking <a href="/admin/config/acme-sports/settings">here</a>') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function acme_sports_nfl_teams_theme($existing, $type, $theme, $path) {
+  // For the results returned from NFL Api.
+  $themes['nfl_teams_results'] = [
+    'template' => 'nfl-teams-results',
+    'variables' => [
+      'no_results' => NULL,
+      'error' => NULL,
+      'data' => NULL,
+    ],
+    'file' => 'acme_sports_nfl_teams.theme.inc',
+  ];
+
+  return $themes;
+}

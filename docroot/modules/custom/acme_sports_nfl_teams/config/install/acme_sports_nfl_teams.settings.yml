@@ -1,0 +1,10 @@
+# Normally sensitive credentials such as these would not live here 
+# and be pulled in through the "Key" module and stored in settings.php
+# as environment variables -> also helps with different keys for
+# for staging/production environments.
+base_url: 'http://delivery.chalk247.com/team_list/NFL.JSON'
+api_key: '74db8efa2a6db279393b433d97c2bc843f8e32b0'  
+dependencies:
+  enforced:
+    module:
+      - acme_sports_nfl_teams

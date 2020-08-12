@@ -1,0 +1,5 @@
+name: 'BI Carousel'
+type: module
+description: 'This module exposes the carousel component'
+core: 8.x
+package: 'Boehringer'

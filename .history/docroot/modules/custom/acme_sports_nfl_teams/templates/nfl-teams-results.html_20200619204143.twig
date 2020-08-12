@@ -1,0 +1,74 @@
+{#
+/**
+ * @file
+ * Default theme implementation for the Acme Sports NFL Teams block.
+ *
+ * Available variables:
+ * - data:
+ *  -- plugin_id: The ID of the block implementation.
+ *  -- label: The configured label of the block if visible.
+ *  -- configuration: A list of the block's configuration values, including:
+ *    - label: The configured label for the block.
+ *    - label_display: The display settings for the label.
+ *    - provider: The module or other provider that provided this block plugin.
+ *    - Block plugin specific settings will also be stored here.
+ *  -- reults: array containing all team related data.
+ *    - columns: all column headings.
+ *    - data
+ *     -- team: invidiual teams data.
+ * - config: 
+ *  -- dislaimer_text: The configured label of the block if visible. 
+ *
+ * @see template_preprocess_block()
+ * @see acme_sports_nfl_teams_preprocess_nfl_teams_results()
+ */
+#}
+<div class="nfl-teams-results-container">
+  {# If no results #}
+  {% if no_results is not null %}
+    <div class="no-results-container">
+      <div class="information-box">
+        <div class="information-box__headline-box__headline">We’re Sorry!</div>
+        <div class="information-box__copy">{{ no_results }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {# If results are returned -> render them in a table #}
+  {% if data is not null %}
+    <div class="data-container">
+      <div class="information-box__headline-box__headline">NFL Sports Teams</div>
+      <div class="results-data">
+        <table>
+          {# Render the table headings #}
+          <tr>
+            {% for column in data.results.columns %}
+              <th>{{ column|capitalize }}</th>
+            {% endfor %}
+          </tr>
+
+          {# Render the table rows #}
+          {% for team in data.results.data.team %}
+            <tr>
+              <td>{{ team.name }}</td>
+              <td>{{ team.nickname }}</td>
+              <td>{{ team.display_name }}</td>
+              <td>{{ team.id }}</td>
+              <td>{{ team.conference }}</td>
+              <td>{{ team.division }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+        <div class="disclaimer">{{data.config.disclaimer_message}}</div>
+      </div>
+    </div>
+  {% endif %}
+  
+  {# If error occurs then display error message #} 
+  {% if error is not null %}
+    <div class="error-message-container">
+      <div class="information-box__headline-box__headline">Sorry something unexpected happened.</div>
+      <div class="information-box__copy">{{ error }}</div>
+    </div>
+  {% endif %}
+</div>

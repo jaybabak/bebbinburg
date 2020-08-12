@@ -1,0 +1,7 @@
+bi_formulary.bi_formulary_config_form:
+  title: 'BI Formulary'
+  route_name: bi_formulary.bi_formulary_config_form
+  description: 'Configure settings for the BI Formulary module.'
+  parent: bi_essentials.admin
+  menu_name: boehringer
+  weight: 99

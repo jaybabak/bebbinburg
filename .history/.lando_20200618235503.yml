@@ -1,0 +1,7 @@
+name: locald8
+recipe: drupal8
+config:
+  webroot: ./docroot
+  xdebug: true
+  conf:
+    php: .vscode/php.ini

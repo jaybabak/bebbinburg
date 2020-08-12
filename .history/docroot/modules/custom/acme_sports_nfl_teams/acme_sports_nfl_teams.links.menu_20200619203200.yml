@@ -1,0 +1,7 @@
+acme_sports_nfl_teams.acme_sports_nfl_teams_config_form:
+  title: 'Acme Sports NFL Teams'
+  route_name: acme_sports_nfl_teams.acme_sports_nfl_teams_config_form
+  description: 'Configure settings for the Acme Sports NFL Teams module.'
+  parent: system.admin_config_development
+  menu_name: acme_sports
+  weight: 99

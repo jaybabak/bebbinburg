@@ -1,0 +1,10 @@
+services:
+  bi_formulary.api:
+    class: Drupal\bi_formulary\BiFormularyApiService
+    arguments: ['@config.factory', '@key.repository']
+  logger.channel.bi_formulary:
+    parent: logger.channel_base
+    arguments: ['bi_formulary']
+  bi_formulary.geocoding:
+    class: Drupal\bi_formulary\BiFormularyGeocodingService
+    arguments: ['@config.factory', '@key.repository', '@http_client']

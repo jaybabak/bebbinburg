@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Provides update hook for bi_formulary module.
+ */
+
+use Drupal\Core\Config\FileStorage;
+
+/**
+ * Implements hook_update_8001() for installing universal_device_detection module.
+ */
+function bi_formulary_update_8001() {
+
+  $module_handler = \Drupal::service('module_handler');
+  $module_enabled = $module_handler->moduleExists('universal_device_detection');
+  // Enable if module not enabled.
+  if (!$module_enabled) {
+    // Install module.
+    \Drupal::service("module_installer")->install(["universal_device_detection"]);
+  }
+
+}
+
+/**
+ * Implements hook_update_8002() for install new API config.
+ */
+function bi_formulary_update_8002() {
+  // Folder path to config directory for adding other formulary API keys.
+  $config_path = drupal_get_path('module', 'bi_formulary') . '/config/optional';
+  $config_source = new FileStorage($config_path);
+  // Install the new configuration.
+  \Drupal::service('config.installer')->installOptionalConfig($config_source);
+
+  // Set new config field state coverage to be enabled by default.
+  \Drupal::configFactory()->getEditable('bi_formulary.settings')->set('state_coverage', 1)->save();
+}

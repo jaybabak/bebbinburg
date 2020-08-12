@@ -1,0 +1,21 @@
+{
+    "name": "acme_sports/acme_sports_nfl_teams",
+    "authors": [
+      {
+          "name": "Sami Malik",
+          "email": "sami@phot0x.com",
+          "homepage": "http://www.phot0x.com",
+          "role": "Developer"
+      }
+    ],
+    "type": "drupal-acme-sports-module",
+    "license": "proprietary",
+    "description": "A module that provides integration with the NFL API",
+    "keywords": [
+        "Drupal",
+        "NFL API"
+    ],
+    "extra": {
+      "enable-patching": true
+    }
+}

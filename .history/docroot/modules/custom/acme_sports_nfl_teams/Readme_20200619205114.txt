@@ -1,0 +1,5 @@
+Readme:
+-- Enable module and place the Acme Sports NFL Teams Block on any page,
+-- Configuration menu is located at: admin/help/acme_sports_nfl_teams
+
+Thank you!

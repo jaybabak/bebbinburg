@@ -1,0 +1,7 @@
+services:
+  acme_sports_nfl_teams.api:
+    class: Drupal\acme_sports_nfl_teams\AcmeSportsNflTeamsApiService
+    arguments: ['@config.factory', '@http_client']
+  logger.channel.acme_sports_nfl_teams:
+    parent: logger.channel_base
+    arguments: ['acme_sports_nfl_teams']

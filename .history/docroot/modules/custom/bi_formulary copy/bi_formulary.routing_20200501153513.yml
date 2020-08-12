@@ -1,0 +1,17 @@
+bi_formulary.bi_formulary_config_form:
+  path: '/admin/config/formulary/settings'
+  defaults:
+    _form: '\Drupal\bi_formulary\Form\BiFormularyConfigForm'
+    _title: 'Bi Formulary Configuration Settings'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+
+bi_formulary.bi_formulary_controller_geocoding:
+  path: '/formulary/lookup'
+  defaults:
+    _controller: '\Drupal\bi_formulary\Controller\BiFormularyGeocodingController::reversegeocode'
+    _title: 'getLocation'
+  requirements:
+    _permission: 'access content'

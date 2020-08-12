@@ -1,0 +1,20 @@
+<div class="formulary-results-container">
+  {% if no_results is not null %}
+    <div class="no-results-container">
+      <div class="information-box"><div class="information-box__headline-box"><svg class="icon information-box__headline-box__icon" viewBox="0 0 24 24" role="img"><use href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention" xlink:href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention"></use></svg><div class="information-box__headline-box__headline">We’re Sorry!</div></div><div class="information-box__copy">{{ no_results }}</div></div></div>
+    </div>
+  {% endif %}
+
+  {% if data is not null %}
+    <div class="data-container">
+      <a href="{{ data }}">Download PDF</a>
+    </div>
+  {% endif %}
+  
+  {% if error is not null %}
+    <div class="error-message-container">
+      <div class="information-box__headline-box__headline">Review the form</div>
+      <div class="information-box__copy">{{ error }}</div>
+    </div>
+  {% endif %}
+</div>

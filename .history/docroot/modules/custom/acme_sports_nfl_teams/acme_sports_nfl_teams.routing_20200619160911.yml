@@ -1,0 +1,9 @@
+acme_sports_nfl_teams.acme_sports_nfl_teams_config_form:
+  path: '/admin/config/acme-sports/settings'
+  defaults:
+    _form: '\Drupal\acme_sports_nfl_teams\Form\AcmeSportsNflTeamsConfigForm'
+    _title: 'Acme Sports NFL Teams Configuration Settings'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE

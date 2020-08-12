@@ -1,0 +1,8 @@
+bi_formulary:
+  key: formulary_api_key
+  key_geocoding: formulary_geocoding_api_key
+  state_coverage: 1
+dependencies:
+  enforced:
+    module:
+      - bi_formulary

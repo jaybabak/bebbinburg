@@ -1,0 +1,440 @@
+diff --git a/acme_sports_nfl_teams.module b/acme_sports_nfl_teams.module
+index 15c9f9c..33aa0fe 100644
+--- a/acme_sports_nfl_teams.module
++++ b/acme_sports_nfl_teams.module
+@@ -27,11 +27,30 @@ function acme_sports_nfl_teams_help($route_name, RouteMatchInterface $route_match) {
+  * Implements hook_theme().
+  */
+ function acme_sports_nfl_teams_theme($existing, $type, $theme, $path) {
+-  return [
+-    'form__acme_sports_nfl_teams_form' => [
+-      'template' => 'form--bi-formulary-form',
+-      'base hook' => 'form',
+-      'render element' => 'form',
++  // For the results returned from formulary Api.
++  $themes['form__acme_sports_nfl_teams_form'] = [
++    'template' => 'form--bi-formulary-form',
++    'base hook' => 'form',
++    'render element' => 'children',
++    'variables' => [
++      'no_results' => NULL,
++      'error' => NULL,
++      'download_link' => NULL,
++      'form' => [],
+     ],
++    'file' => 'acme_sports_nfl_teams.theme.inc',
+   ];
++
++  // For the results returned from formulary Api.
++  $themes['acme_sports_nfl_teams_results'] = [
++    'template' => 'bi-formulary-results',
++    'variables' => [
++      'no_results' => NULL,
++      'error' => NULL,
++      'download_link' => NULL,
++    ],
++    'file' => 'acme_sports_nfl_teams.theme.inc',
++  ];
++
++  return $themes;
+ }
+diff --git a/src/BiFormularyApiService.php b/src/BiFormularyApiService.php
+index 659a286..06e091c 100644
+--- a/src/BiFormularyApiService.php
++++ b/src/BiFormularyApiService.php
+@@ -7,12 +7,15 @@ use Drupal\key\KeyRepositoryInterface;
+ use FingertipFormulary\Config;
+ use FingertipFormulary\Client\Client;
+ use FingertipFormulary\FingertipFormulary;
++use Drupal\Core\StringTranslation\StringTranslationTrait;
+ 
+ /**
+  * Class BeFormularyApiService.
+  */
+ class BiFormularyApiService {
+ 
++  use StringTranslationTrait;
++
+   /**
+    * Config factory service.
+    *
+@@ -49,7 +52,7 @@ class BiFormularyApiService {
+   protected $ftf;
+ 
+   /**
+-   * Constructs a new BeFormularyApiService object.
++   * Constructs a new BiFormularyApiService object.
+    */
+   public function __construct(ConfigFactoryInterface $configFactory, KeyRepositoryInterface $keyRepository) {
+     $this->config = $configFactory->get('acme_sports_nfl_teams.settings');
+@@ -151,6 +154,101 @@ class BiFormularyApiService {
+     return $formulary_data;
+   }
+ 
++  /**
++   * Helper function to populate the states dropdown.
++   *
++   * @return array
++   *   Returns <option> element for Form API
++   */
++  public function getStatesDropdownOptions() {
++    // Get all states.
++    $states = $this->getStates();
++    // Set none option.
++    $state_names[] = $this->t('- Select -');
++    $state_ids[] = '0';
++    // Create options array.
++    foreach ($states as $state) {
++      $state_names[] = $state['name'];
++      $state_ids[] = $state['id'];
++    }
++
++    return array_combine($state_ids, $state_names);
++  }
++
++  /**
++   * Helper function to populate the drugs dropdown.
++   *
++   * @return array
++   *   Returns <option> element for Form API
++   */
++  public function getDrugsDropdownOptions() {
++    // Get all drugs and format array for options.
++    $drugs = $this->getDrugs();
++    // Set none option.
++    $drug_names[] = $this->t('- Select -');
++    $drug_ids[] = '0';
++    // Create options array.
++    foreach ($drugs as $drug) {
++      $drug_names[] = $drug['name'];
++      $drug_ids[] = $drug['id'];
++    }
++
++    return array_combine($drug_ids, $drug_names);
++  }
++
++  /**
++   * Helper function to populate the healthplan dropdown.
++   *
++   * @param string $key
++   *   This will determine which set of options is returned.
++   *
++   * @return array
++   *   Returns <option> element for Form API
++   */
++  public function getHealthPlansDropdownOptions($key = '') {
++    if ($key == 'none') {
++      $health_plan_names[] = $this->t('- Select -');
++      $health_plan_ids[] = 'none';
++      return array_combine($health_plan_ids, $health_plan_names);
++    }
++
++    $health_plans = $this->getHealthPlans($key);
++    // Set none option.
++    $health_plan_names[] = $this->t('- Select -');
++    $health_plan_ids[] = 'none';
++    // Create options array.
++    foreach ($health_plans as $health_plan) {
++      $health_plan_names[] = $health_plan['health_plan']['webname'];
++      $health_plan_ids[] = $health_plan['health_plan']['provider']['id'];
++    }
++
++    return array_combine($health_plan_ids, $health_plan_names);
++  }
++
++  /**
++   * Helper function to retrieve coverage stats.
++   *
++   * @param string $state_id
++   *   This current selected state.
++   *
++   * @return array
++   *   Gets coverage information.
++   */
++  public function getStateCoverageInformation($state_id) {
++    // Get all states.
++    $states = $this->getStates();
++    // Set initial value.
++    $state_coverage = 0;
++    // Find the current state coverage information.
++    foreach ($states as $state) {
++      if ((int) $state_id == $state["id"]) {
++        $state_coverage = $state["coverage"];
++      }
++    }
++
++    return $state_coverage;
++  }
++
+   /**
+    * Retrieve the credentials for the formulary API service.
+    */
+diff --git a/src/Form/BiFormularyForm.php b/src/Form/BiFormularyForm.php
+index 20a9a50..24dad48 100644
+--- a/src/Form/BiFormularyForm.php
++++ b/src/Form/BiFormularyForm.php
+@@ -15,6 +15,7 @@ use Drupal\acme_sports_nfl_teams\Event\FormularySubmitEventDtm;
+ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+ use Drupal\universal_device_detection\Detector\DefaultDetector;
+ use Drupal\Core\Config\ConfigFactoryInterface;
++use Drupal\Core\Url;
+ 
+ /**
+  * Class BiFormularyForm.
+@@ -96,7 +97,7 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+     // Get config settings to disable/enable field.
+     $state_coverage_enabled = $config->get('state_coverage');
+     // Get all states.
+-    $states_options = $this->getStatesDropdownOptions();
++    $states_options = $this->ftf->getStatesDropdownOptions();
+ 
+     if (empty($form_state->getValue('states_dropdown'))) {
+       // Use a default value.
+@@ -109,7 +110,7 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+       $selected_state = $form_state->getValue('states_dropdown');
+       // Get coverage information.
+       $coverage = $this->t('<span class="form-title">@coverage% @state_coverage_label</span><sup class="foot-note">@foot_note</sup>', [
+-        '@coverage' => $this->getStateCoverageInformation($selected_state),
++        '@coverage' => $this->ftf->getStateCoverageInformation($selected_state),
+         '@state_coverage_label' => 'Coverage',
+         '@foot_note' => $parameter['disclaimer_message'],
+       ]);
+@@ -166,14 +167,14 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+     $form['products_fieldset_container']['products_fieldset']['health_plan'] = [
+       '#type' => 'select',
+       '#title' => $this->t('Health plan'),
+-      '#options' => $this->getHealthPlansDropdownOptions($selected_state),
++      '#options' => $this->ftf->getHealthPlansDropdownOptions($selected_state),
+       '#default_value' => !empty($form_state->getValue('health_plan')) ? $form_state->getValue('health_plan') : '',
+     ];
+ 
+     $form['products_fieldset_container']['products_fieldset']['drugs'] = [
+       '#type' => 'select',
+       '#title' => $this->t('Drug'),
+-      '#options' => $this->getDrugsDropdownOptions(),
++      '#options' => $this->ftf->getDrugsDropdownOptions(),
+       '#value' => $parameter['product_name'],
+       '#access' => FALSE,
+       '#attributes' => [
+@@ -244,21 +245,40 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+     $params['drug_id'] = $form_state->getValue('drugs');
+     $params['drug_name'] = $form['products_fieldset_container']['products_fieldset']['drugs']['#options'][$params['drug_id']];
+ 
++    // Container div where results will be shown.
++    $build['formulary_results_container'] = [
++      '#type' => 'container',
++      '#attributes' => [
++        // 'id' => 'bi-formulary-results',
++        'class' => 'results-container',
++      ],
++      '#theme' => 'acme_sports_nfl_teams_results',
++      '#download_link' => NULL,
++      '#error' => NULL,
++      '#no_results' => NULL,
++      '#cache' => [
++        'max-age' => 0,
++      ],
++    ];
++
++    // Build the drugs and health plan field set.
+     if ($params['drug_id'] == '0' || $params['state_id'] == 'none' || $params['health_plan_id'] == 'none') {
+       // Return validation message.
+-      $element = ['#markup' => '<div id="bi-formulary-results"><div class="information-box"><div class="information-box__headline-box"><svg class="icon information-box__headline-box__icon" viewBox="0 0 24 24" role="img"><use href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention" xlink:href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention"></use></svg><div class="information-box__headline-box__headline">Oops!</div></div><div class="information-box__copy">Please ensure a drug and health plan have been selected.</div></div></div></div>'];
++      $build['formulary_results_container']['#error'] = $this->t('Please ensure all values are filled out!');
+     }
+     else {
+       // Get the drug information.
+       $formulary = $this->ftf->getDrug($params['drug_id'], $params['health_plan_id']);
+       // If no results, display message.
+       if (empty($formulary)) {
+-        $element = ['#markup' => '<div id="bi-formulary-results"><div class="information-box"><div class="information-box__headline-box"><svg class="icon information-box__headline-box__icon" viewBox="0 0 24 24" role="img"><use href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention" xlink:href="/themes/custom/bi_hcpportal_base/images/icons.svg#attention"></use></svg><div class="information-box__headline-box__headline">We’re Sorry!</div></div><div class="information-box__copy">We can’t seem to find any results that match your search.</div></div></div></div>'];
++        // No results element.
++        $build['formulary_results_container']['#no_results'] = $this->t('Sorry no results for this search');
+       }
+       // Return the information.
+       else {
+         $url = $formulary[0]['health_plan_url'];
+-        $element = ['#markup' => '<div id="bi-formulary-results"><h3 class=""section-divider>' . $this->t('Results') . '</h3>' . '</br><div><a target="_blank" href="' . $url . '">' . $this->t('Download PDF') . '</a></div>'];
++        $build['formulary_results_container']['#download_link'] = $url;
++
+       }
+ 
+       // Dispatch event for Adobe DTM.
+@@ -272,7 +292,7 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+ 
+     }
+     // Populate the selected option in our health plan select.
+-    $data = $this->renderer->render($element);
++    $data = $this->renderer->render($build['formulary_results_container']);
+     // Send AJAX response.
+     $response = new AjaxResponse();
+     $response->addCommand(new ReplaceCommand('#bi-formulary-results', $data));
+@@ -309,99 +329,4 @@ class BiFormularyForm extends FormBase implements ContainerInjectionInterface {
+     return $response;
+   }
+ 
+-  /**
+-   * Helper function to populate the states dropdown.
+-   *
+-   * @return array
+-   *   Dropdown options.
+-   */
+-  public function getStatesDropdownOptions() {
+-    // Get all states.
+-    $states = $this->ftf->getStates();
+-    // Set none option.
+-    $state_names[] = $this->t('- Select -');
+-    $state_ids[] = '0';
+-    // Create options array.
+-    foreach ($states as $state) {
+-      $state_names[] = $state['name'];
+-      $state_ids[] = $state['id'];
+-    }
+-
+-    return array_combine($state_ids, $state_names);
+-  }
+-
+-  /**
+-   * Helper function to retrieve coverage stats.
+-   *
+-   * @param string $state_id
+-   *   This current selected state.
+-   *
+-   * @return array
+-   *   Gets coverage information.
+-   */
+-  public function getStateCoverageInformation($state_id) {
+-    // Get all states.
+-    $states = $this->ftf->getStates();
+-    // Set initial value.
+-    $state_coverage = 0;
+-    // Find the current state coverage information.
+-    foreach ($states as $state) {
+-      if ((int) $state_id == $state["id"]) {
+-        $state_coverage = $state["coverage"];
+-      }
+-    }
+-
+-    return $state_coverage;
+-  }
+-
+-  /**
+-   * Helper function to populate the healthplan dropdown.
+-   *
+-   * @param string $key
+-   *   This will determine which set of options is returned.
+-   *
+-   * @return array
+-   *   Dropdown options
+-   */
+-  public function getHealthPlansDropdownOptions($key = '') {
+-    if ($key == 'none') {
+-      $health_plan_names[] = $this->t('- Select -');
+-      $health_plan_ids[] = 'none';
+-      return array_combine($health_plan_ids, $health_plan_names);
+-    }
+-
+-    $health_plans = $this->ftf->getHealthPlans($key);
+-    // Set none option.
+-    $health_plan_names[] = $this->t('- Select -');
+-    $health_plan_ids[] = 'none';
+-    // Create options array.
+-    foreach ($health_plans as $health_plan) {
+-      $health_plan_names[] = $health_plan['health_plan']['webname'];
+-      $health_plan_ids[] = $health_plan['health_plan']['provider']['id'];
+-    }
+-
+-    return array_combine($health_plan_ids, $health_plan_names);
+-  }
+-
+-  /**
+-   * Helper function to populate the drugs dropdown.
+-   *
+-   * @return array
+-   *   Dropdown options
+-   */
+-  public function getDrugsDropdownOptions() {
+-    // Get all drugs and format array for options.
+-    $drugs = $this->ftf->getDrugs();
+-    // Set none option.
+-    $drug_names[] = $this->t('- Select -');
+-    $drug_ids[] = '0';
+-    // Create options array.
+-    foreach ($drugs as $drug) {
+-      $drug_names[] = $drug['name'];
+-      $drug_ids[] = $drug['id'];
+-    }
+-
+-    return array_combine($drug_ids, $drug_names);
+-  }
+-
+ }
+diff --git a/src/Plugin/Block/FormularySearchBlock.php b/src/Plugin/Block/FormularySearchBlock.php
+index 89aacc9..1988fc4 100644
+--- a/src/Plugin/Block/FormularySearchBlock.php
++++ b/src/Plugin/Block/FormularySearchBlock.php
+@@ -86,7 +86,7 @@ class FormularySearchBlock extends BlockBase implements ContainerFactoryPluginIn
+     $form['product_name'] = [
+       '#type' => 'select',
+       '#title' => $this->t('Drug'),
+-      '#options' => $this->getDrugsDropdownOptions(),
++      '#options' => $this->ftf->getDrugsDropdownOptions(),
+       '#required' => TRUE,
+       '#default_value' => $this->configuration['product_name'],
+     ];
+@@ -94,7 +94,7 @@ class FormularySearchBlock extends BlockBase implements ContainerFactoryPluginIn
+     // Heading fieldset/details.
+     $form['headings'] = [
+       '#type' => 'details',
+-      '#title' => $this->t('Enter block headings'),
++      '#title' => $this->t('Headings'),
+     ];
+ 
+     $form['headings']['headline'] = [
+@@ -125,7 +125,7 @@ class FormularySearchBlock extends BlockBase implements ContainerFactoryPluginIn
+     $form['disclaimer']['disclaimer_message'] = [
+       '#type' => 'textarea',
+       '#title' => $this->t('Disclaimer text.'),
+-      '#default_value' => $this->configuration['message'],
++      '#default_value' => $this->configuration['disclaimer_message'],
+     ];
+ 
+     // PDF button toggle.
+@@ -175,25 +175,4 @@ class FormularySearchBlock extends BlockBase implements ContainerFactoryPluginIn
+     return $form;
+   }
+ 
+-  /**
+-   * Helper function to populate the drugs dropdown.
+-   *
+-   * @return array
+-   *   Dropdown options
+-   */
+-  public function getDrugsDropdownOptions() {
+-    // Get all drugs and format array for options.
+-    $drugs = $this->ftf->getDrugs();
+-    // Set none option.
+-    $drug_names[] = $this->t('- Select -');
+-    $drug_ids[] = '0';
+-    // Create options array.
+-    foreach ($drugs as $drug) {
+-      $drug_names[] = $drug['name'];
+-      $drug_ids[] = $drug['id'];
+-    }
+-
+-    return array_combine($drug_ids, $drug_names);
+-  }
+-
+ }
+diff --git a/templates/form--bi-formulary-form.html.twig b/templates/form--bi-formulary-form.html.twig
+index f82d255..8bccd51 100644
+--- a/templates/form--bi-formulary-form.html.twig
++++ b/templates/form--bi-formulary-form.html.twig
+@@ -11,5 +11,5 @@
+  */
+ #}
+ <form{{ attributes }}>
+-  {{ children }}
++  {{ element }}
+ </form>
+\ No newline at end of file

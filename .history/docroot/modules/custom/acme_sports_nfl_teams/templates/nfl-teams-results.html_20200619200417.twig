@@ -1,0 +1,38 @@
+<div class="nfl-teams-results-container">
+  {% if no_results is not null %}
+    <div class="no-results-container">
+      <div class="information-box">
+        <div class="information-box__headline-box__headline">We’re Sorry!</div>
+        <div class="information-box__copy">{{ no_results }}</div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if data is not null %}
+    <div class="data-container">
+      <div class="information-box__headline-box__headline">NFL Sports Teams</div>
+      <div class="results-data">
+        {{ kint(data) }}
+        <table>
+          <tr>
+            {% for column in data.results.columns %}
+              <th>{{ column|capitalize }}</th>
+            {% endfor %}
+          </tr>
+          <tr>
+            {% for team in data.results.team %}
+              <td>{{ team|capitalize }}</td>
+            {% endfor %}
+          </tr>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+  
+  {% if error is not null %}
+    <div class="error-message-container">
+      <div class="information-box__headline-box__headline">Sorry something unexpected happened.</div>
+      <div class="information-box__copy">{{ error }}</div>
+    </div>
+  {% endif %}
+</div>

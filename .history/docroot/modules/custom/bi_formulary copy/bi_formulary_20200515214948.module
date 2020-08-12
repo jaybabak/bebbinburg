@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Contains bi_formulary.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function bi_formulary_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the bi_formulary module.
+    case 'help.page.bi_formulary':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('A module that provides integration with formulary API&#039;&#039;s') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bi_formulary_theme($existing, $type, $theme, $path) {
+  // For the results returned from formulary Api.
+  $themes['form__bi_formulary_form'] = [
+    'template' => 'form--bi-formulary-form',
+    'base hook' => 'form',
+    'render element' => 'children',
+    'variables' => [
+      'no_results' => NULL,
+      'error' => NULL,
+      'download_link' => NULL,
+      'form' => [],
+    ],
+    'file' => 'bi_formulary.theme.inc',
+  ];
+
+  // For the results returned from formulary Api.
+  $themes['bi_formulary_results'] = [
+    'template' => 'bi-formulary-results',
+    'variables' => [
+      'no_results' => NULL,
+      'error' => NULL,
+      'download_link' => NULL,
+    ],
+    'file' => 'bi_formulary.theme.inc',
+  ];
+
+  return $themes;
+}

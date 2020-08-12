@@ -1,0 +1,8 @@
+name: BI Formulary
+type: module
+description: A module that provides integration with formulary API
+core: 8.x
+package: Boehringer Ingelheim
+dependencies:
+  - key:key
+  - universal_device_detection:universal_device_detection

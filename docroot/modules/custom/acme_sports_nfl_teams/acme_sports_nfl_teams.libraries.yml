@@ -1,0 +1,9 @@
+library:
+  version: 1.x
+  dependencies:
+    - core/drupalSettings
+    - core/jquery
+    - core/drupal.aja
+  css:
+    theme:
+      css/dist/acme_sports_nfl_teams.min.css: {}
